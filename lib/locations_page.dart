@@ -116,6 +116,7 @@ class _LocationsPageState extends State<LocationsPage> {
                                   _searchIsNotEmpty = false;
                                   _suggestions = null;
                                   appState.addLocationByFullName(fullName);
+                                  appState.selectedLocationFullName = fullName;
                                   if (widget.hasToAddLocation) {
                                     Navigator.of(context).pushReplacement(
                                       MaterialPageRoute(
