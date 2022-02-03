@@ -120,7 +120,25 @@ class _LocationsPageState extends State<LocationsPage> {
                                     Navigator.of(context).pushReplacement(
                                       MaterialPageRoute(
                                         builder: (context) {
-                                          return const HomePage();
+                                          return Consumer<AppStateModel>(
+                                            builder:
+                                                (context, appState, child) {
+                                              return AnimatedSwitcher(
+                                                duration: const Duration(
+                                                    milliseconds: 200),
+                                                child:
+                                                    appState.isLoadingLocations
+                                                        ? Container(
+                                                            color: Colors.white,
+                                                            child: const Center(
+                                                              child:
+                                                                  CircularProgressIndicator(),
+                                                            ),
+                                                          )
+                                                        : const HomePage(),
+                                              );
+                                            },
+                                          );
                                         },
                                       ),
                                     );
@@ -173,40 +191,45 @@ class _AppBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final localization = S.of(context);
 
-    return Row(
-      children: [
-        hasToAddLocation
-            ? const SizedBox(width: 48)
-            : IconButton(
-                onPressed: Navigator.of(context).pop,
-                icon: const Icon(Icons.arrow_back),
-              ),
-        Expanded(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 150),
-            transitionBuilder: (child, animation) {
-              return FadeTransition(
-                opacity: animation,
-                child: ScaleTransition(
-                  scale: animation,
-                  child: child,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        minHeight: 48,
+      ),
+      child: Row(
+        children: [
+          hasToAddLocation
+              ? const SizedBox(width: 48)
+              : IconButton(
+                  onPressed: Navigator.of(context).pop,
+                  icon: const Icon(Icons.arrow_back),
                 ),
-              );
-            },
-            child: Text(
-              isSearching
-                  ? localization.searchLocation
-                  : localization.manageLocation,
-              key: ValueKey<bool>(isSearching),
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 150),
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: ScaleTransition(
+                    scale: animation,
+                    child: child,
+                  ),
+                );
+              },
+              child: Text(
+                isSearching
+                    ? localization.searchLocation
+                    : localization.manageLocation,
+                key: ValueKey<bool>(isSearching),
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 48),
-      ],
+          const SizedBox(width: 48),
+        ],
+      ),
     );
   }
 }
@@ -465,6 +488,14 @@ class _LocationsListViewState extends State<_LocationsListView>
                         widget.onSelectionChanged(index, value);
                       },
                       isSelecting: widget.selectedIndexes.isNotEmpty,
+                      canBeSelected: (widget.locations
+                                  .where((location) => location.isCurrent)
+                                  .isEmpty &&
+                              widget.selectedIndexes.length >=
+                                  widget.locations.length - 1 &&
+                              widget.selectedIndexes.contains(index) ==
+                                  false) ==
+                          false,
                     );
                   },
                 ),
@@ -486,6 +517,7 @@ class _SavedLocationTile extends StatelessWidget {
   final bool isSelected;
   final ValueChanged<bool> onSelectionChanged;
   final bool isSelecting;
+  final bool canBeSelected;
 
   const _SavedLocationTile({
     required this.location,
@@ -494,6 +526,7 @@ class _SavedLocationTile extends StatelessWidget {
     required this.isSelected,
     required this.onSelectionChanged,
     required this.isSelecting,
+    required this.canBeSelected,
     Key? key,
   }) : super(key: key);
 
@@ -515,6 +548,7 @@ class _SavedLocationTile extends StatelessWidget {
         color: Color(0xFF1B2541),
       ),
     );
+
     // TODO: Localized names of locations
 
     final child = Padding(
@@ -523,10 +557,12 @@ class _SavedLocationTile extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         child: AnimatedOpacity(
-          opacity: isSelecting && location.isCurrent ? 0.5 : 1,
+          opacity: isSelecting && (canBeSelected == false || location.isCurrent)
+              ? 0.5
+              : 1,
           duration: const Duration(milliseconds: 200),
           child: InkWell(
-            onTap: isSelecting && location.isCurrent
+            onTap: isSelecting && (canBeSelected == false || location.isCurrent)
                 ? null
                 : () {
                     if (isSelecting) {
@@ -539,7 +575,9 @@ class _SavedLocationTile extends StatelessWidget {
                   },
             onLongPress: location.isCurrent
                 ? null
-                : () => onSelectionChanged(!isSelected),
+                : isSelecting && (canBeSelected == false || location.isCurrent)
+                    ? null
+                    : () => onSelectionChanged(!isSelected),
             borderRadius: BorderRadius.circular(16),
             child: Padding(
               padding: const EdgeInsets.all(16),

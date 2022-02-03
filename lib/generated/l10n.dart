@@ -310,16 +310,6 @@ class S {
     );
   }
 
-  /// `Current location`
-  String get currentLocation {
-    return Intl.message(
-      'Current location',
-      name: 'currentLocation',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Manage location`
   String get manageLocation {
     return Intl.message(

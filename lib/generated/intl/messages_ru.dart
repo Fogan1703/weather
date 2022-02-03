@@ -28,8 +28,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "atmosphericPressureUnit":
             MessageLookupByLibrary.simpleMessage("Единица давления"),
         "chanceOfRain": MessageLookupByLibrary.simpleMessage("Шанс дождя"),
-        "currentLocation":
-            MessageLookupByLibrary.simpleMessage("Текущее местоположение"),
         "extra": MessageLookupByLibrary.simpleMessage("ДОПОЛНИТЕЛЬНО"),
         "forecastFor7Day":
             MessageLookupByLibrary.simpleMessage("Прогноз на 7 дней"),
@@ -39,7 +37,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "kmh": MessageLookupByLibrary.simpleMessage("км/ч"),
         "kn": MessageLookupByLibrary.simpleMessage("уз"),
         "manageLocation":
-            MessageLookupByLibrary.simpleMessage("Управление местоположением"),
+            MessageLookupByLibrary.simpleMessage("Управление местами"),
         "mbar": MessageLookupByLibrary.simpleMessage("мбар"),
         "milh": MessageLookupByLibrary.simpleMessage("миля/ч"),
         "mmHg": MessageLookupByLibrary.simpleMessage("мм рт. ст."),

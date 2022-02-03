@@ -6,55 +6,44 @@ import 'package:weather/weather_api.dart';
 import 'package:weather/weather_data.dart';
 
 class AppStateModel extends ChangeNotifier {
-  final SharedPreferences prefs;
-  final List<LocationData> _locations;
-  final bool isFirstLaunchAndNoCurrentLocation;
+  late final SharedPreferences prefs;
+  late final List<LocationData> _locations;
+  late final bool hasToOpenAddingLocationPage;
 
-  TemperatureUnit _temperatureUnit;
-  WindSpeedUnit _windSpeedUnit;
-  AtmosphericPressureUnit _atmosphericPressureUnit;
-  String _selectedLocationFullName;
-  bool _isLoadingLocations = false;
+  late TemperatureUnit _temperatureUnit;
+  late WindSpeedUnit _windSpeedUnit;
+  late AtmosphericPressureUnit _atmosphericPressureUnit;
+  late String _selectedLocationFullName;
+  late bool _isLoadingLocations = false;
 
-  AppStateModel.({
-    required this.prefs,
-    required this.isFirstLaunchAndNoCurrentLocation,
-    required TemperatureUnit temperatureUnit,
-    required WindSpeedUnit windSpeedUnit,
-    required AtmosphericPressureUnit atmosphericPressureUnit,
-    required String selectedLocationFullName,
-    required List<LocationData> locations,
-  })  : _locations = locations,
-        _temperatureUnit = temperatureUnit,
-        _windSpeedUnit = windSpeedUnit,
-        _atmosphericPressureUnit = atmosphericPressureUnit,
-        _selectedLocationFullName = selectedLocationFullName;
+  late Future<AppStateModel> _initializing;
 
-  static Future<AppStateModel> initialize(SharedPreferences prefs) async {
+  AppStateModel() {
+    _initializing = _init();
+    _initializing.whenComplete(() {
+      notifyListeners();
+    });
+  }
+
+  Future<AppStateModel> _init() async {
+    prefs = await SharedPreferences.getInstance();
     final List<String>? locationsFromPrefs = prefs.getStringList('locations');
     final List<LocationData> locations = [];
-    bool hasCurrentLocation = false;
-
-    bool? isNotFirstLaunch = prefs.getBool('isNotFirstLaunch');
-    if (isNotFirstLaunch == null) {
-      isNotFirstLaunch = false;
-      prefs.setBool('isNotFirstLaunch', false);
-    }
 
     final permission = await Geolocator.checkPermission();
     late final bool loadCurrentLocation;
     switch (permission) {
       case LocationPermission.denied:
         final permission = await Geolocator.requestPermission();
-          switch (permission) {
-            case LocationPermission.denied:
-            case LocationPermission.deniedForever:
-              loadCurrentLocation = false;
-              break;
-            case LocationPermission.whileInUse:
-            case LocationPermission.always:
-              loadCurrentLocation = true;
-              break;
+        switch (permission) {
+          case LocationPermission.denied:
+          case LocationPermission.deniedForever:
+            loadCurrentLocation = false;
+            break;
+          case LocationPermission.whileInUse:
+          case LocationPermission.always:
+            loadCurrentLocation = true;
+            break;
         }
         break;
       case LocationPermission.deniedForever:
@@ -72,7 +61,6 @@ class AppStateModel extends ChangeNotifier {
         timeLimit: const Duration(seconds: 5),
       ).then(
         (position) async {
-          hasCurrentLocation = true;
           locations.add(
             await WeatherAPI.getCurrentLocationFromCoordinates(
               position.latitude,
@@ -94,26 +82,27 @@ class AppStateModel extends ChangeNotifier {
       prefs.setStringList('locations', []);
     }
 
-    if (isNotFirstLaunch == false) {
-      prefs.setBool('isNotFirstLaunch', true);
-      isNotFirstLaunch = true;
-    }
+    temperatureUnit = _temperatureUnitFromPrefs(prefs);
+    windSpeedUnit = _windSpeedUnitFromPrefs(prefs);
+    atmosphericPressureUnit = _atmosphericPressureUnitFromPrefs(prefs);
+    selectedLocationFullName = _getSelectedLocation(prefs);
+    _locations = locations;
+    hasToOpenAddingLocationPage = locations.isEmpty;
 
-    return AppStateModel(
-      prefs: prefs,
-      temperatureUnit: _temperatureUnitFromPrefs(prefs),
-      windSpeedUnit: _windSpeedUnitFromPrefs(prefs),
-      atmosphericPressureUnit: _atmosphericPressureUnitFromPrefs(prefs),
-      selectedLocationFullName: _getSelectedLocation(prefs),
-      locations: locations,
-      isFirstLaunchAndNoCurrentLocation:
-          isNotFirstLaunch && hasCurrentLocation == false,
-    );
+    return this;
   }
+
+  Future<AppStateModel> get initializing => _initializing;
 
   LocationData get getSelectedLocation {
     if (_selectedLocationFullName.isEmpty) {
-      return _locations.singleWhere((location) => location.isCurrent);
+      try {
+        return _locations.singleWhere((location) => location.isCurrent);
+      } catch (e) {
+        _selectedLocationFullName = _locations.first.fullName;
+        prefs.setString('selectedLocation', _selectedLocationFullName);
+        return _locations.first;
+      }
     } else {
       return _locations
           .where((location) => location.isCurrent == false)
@@ -157,6 +146,7 @@ class AppStateModel extends ChangeNotifier {
 
   set selectedLocationFullName(String? value) {
     _selectedLocationFullName = value ?? '';
+    prefs.setString('selectedLocation', _selectedLocationFullName);
     notifyListeners();
   }
 

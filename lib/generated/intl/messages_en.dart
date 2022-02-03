@@ -27,8 +27,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "atmosphericPressureUnit":
             MessageLookupByLibrary.simpleMessage("Atmospheric pressure unit"),
         "chanceOfRain": MessageLookupByLibrary.simpleMessage("Chance of rain"),
-        "currentLocation":
-            MessageLookupByLibrary.simpleMessage("Current location"),
         "extra": MessageLookupByLibrary.simpleMessage("EXTRA"),
         "forecastFor7Day":
             MessageLookupByLibrary.simpleMessage("Forecast for 7 days"),
