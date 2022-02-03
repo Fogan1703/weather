@@ -8,6 +8,7 @@ import 'package:weather/weather_data.dart';
 class AppStateModel extends ChangeNotifier {
   final SharedPreferences prefs;
   final List<LocationData> _locations;
+  final bool isFirstLaunchAndNoCurrentLocation;
 
   TemperatureUnit _temperatureUnit;
   WindSpeedUnit _windSpeedUnit;
@@ -15,8 +16,9 @@ class AppStateModel extends ChangeNotifier {
   String _selectedLocationFullName;
   bool _isLoadingLocations = false;
 
-  AppStateModel({
+  AppStateModel.({
     required this.prefs,
+    required this.isFirstLaunchAndNoCurrentLocation,
     required TemperatureUnit temperatureUnit,
     required WindSpeedUnit windSpeedUnit,
     required AtmosphericPressureUnit atmosphericPressureUnit,
@@ -31,16 +33,56 @@ class AppStateModel extends ChangeNotifier {
   static Future<AppStateModel> initialize(SharedPreferences prefs) async {
     final List<String>? locationsFromPrefs = prefs.getStringList('locations');
     final List<LocationData> locations = [];
+    bool hasCurrentLocation = false;
 
-    final position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.medium,
-    );
-    locations.add(
-      await WeatherAPI.getCurrentLocationFromCoordinates(
-        position.latitude,
-        position.longitude,
-      ),
-    );
+    bool? isNotFirstLaunch = prefs.getBool('isNotFirstLaunch');
+    if (isNotFirstLaunch == null) {
+      isNotFirstLaunch = false;
+      prefs.setBool('isNotFirstLaunch', false);
+    }
+
+    final permission = await Geolocator.checkPermission();
+    late final bool loadCurrentLocation;
+    switch (permission) {
+      case LocationPermission.denied:
+        final permission = await Geolocator.requestPermission();
+          switch (permission) {
+            case LocationPermission.denied:
+            case LocationPermission.deniedForever:
+              loadCurrentLocation = false;
+              break;
+            case LocationPermission.whileInUse:
+            case LocationPermission.always:
+              loadCurrentLocation = true;
+              break;
+        }
+        break;
+      case LocationPermission.deniedForever:
+        loadCurrentLocation = false;
+        break;
+      case LocationPermission.whileInUse:
+      case LocationPermission.always:
+        loadCurrentLocation = true;
+        break;
+    }
+
+    if (loadCurrentLocation) {
+      await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.medium,
+        timeLimit: const Duration(seconds: 5),
+      ).then(
+        (position) async {
+          hasCurrentLocation = true;
+          locations.add(
+            await WeatherAPI.getCurrentLocationFromCoordinates(
+              position.latitude,
+              position.longitude,
+            ),
+          );
+        },
+        onError: (error) {},
+      );
+    }
 
     if (locationsFromPrefs != null) {
       for (final fullName in locationsFromPrefs) {
@@ -52,6 +94,11 @@ class AppStateModel extends ChangeNotifier {
       prefs.setStringList('locations', []);
     }
 
+    if (isNotFirstLaunch == false) {
+      prefs.setBool('isNotFirstLaunch', true);
+      isNotFirstLaunch = true;
+    }
+
     return AppStateModel(
       prefs: prefs,
       temperatureUnit: _temperatureUnitFromPrefs(prefs),
@@ -59,6 +106,8 @@ class AppStateModel extends ChangeNotifier {
       atmosphericPressureUnit: _atmosphericPressureUnitFromPrefs(prefs),
       selectedLocationFullName: _getSelectedLocation(prefs),
       locations: locations,
+      isFirstLaunchAndNoCurrentLocation:
+          isNotFirstLaunch && hasCurrentLocation == false,
     );
   }
 

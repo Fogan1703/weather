@@ -6,15 +6,18 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:weather/app_state_model.dart';
 import 'package:weather/generated/l10n.dart';
+import 'package:weather/home_page.dart';
 import 'package:weather/maps_api.dart';
 import 'package:weather/weather_data.dart';
 import 'dart:ui' as ui;
 
 class LocationsPage extends StatefulWidget {
   final bool isSearching;
+  final bool hasToAddLocation;
 
   const LocationsPage({
     required this.isSearching,
+    this.hasToAddLocation = false,
     Key? key,
   }) : super(key: key);
 
@@ -58,7 +61,10 @@ class _LocationsPageState extends State<LocationsPage> {
             ),
             child: Column(
               children: [
-                _AppBar(isSearching: _isSearching),
+                _AppBar(
+                  isSearching: _isSearching,
+                  hasToAddLocation: widget.hasToAddLocation,
+                ),
                 const SizedBox(height: 32),
                 Consumer<AppStateModel>(
                   builder: (context, appState, child) {
@@ -110,10 +116,20 @@ class _LocationsPageState extends State<LocationsPage> {
                                   _searchIsNotEmpty = false;
                                   _suggestions = null;
                                   appState.addLocationByFullName(fullName);
-                                  if (widget.isSearching) {
-                                    Navigator.of(context).pop();
+                                  if (widget.hasToAddLocation) {
+                                    Navigator.of(context).pushReplacement(
+                                      MaterialPageRoute(
+                                        builder: (context) {
+                                          return const HomePage();
+                                        },
+                                      ),
+                                    );
                                   } else {
-                                    _searchFieldKey.currentState!.clear();
+                                    if (widget.isSearching) {
+                                      Navigator.of(context).pop();
+                                    } else {
+                                      _searchFieldKey.currentState!.clear();
+                                    }
                                   }
                                 });
                               },
@@ -145,9 +161,11 @@ class _LocationsPageState extends State<LocationsPage> {
 
 class _AppBar extends StatelessWidget {
   final bool isSearching;
+  final bool hasToAddLocation;
 
   const _AppBar({
     required this.isSearching,
+    required this.hasToAddLocation,
     Key? key,
   }) : super(key: key);
 
@@ -157,10 +175,12 @@ class _AppBar extends StatelessWidget {
 
     return Row(
       children: [
-        IconButton(
-          onPressed: Navigator.of(context).pop,
-          icon: const Icon(Icons.arrow_back),
-        ),
+        hasToAddLocation
+            ? const SizedBox(width: 48)
+            : IconButton(
+                onPressed: Navigator.of(context).pop,
+                icon: const Icon(Icons.arrow_back),
+              ),
         Expanded(
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 150),
