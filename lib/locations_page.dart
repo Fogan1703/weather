@@ -549,8 +549,6 @@ class _SavedLocationTile extends StatelessWidget {
       ),
     );
 
-    // TODO: Localized names of locations
-
     final child = Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Material(

@@ -65,7 +65,7 @@ class HourlyForecast extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${forecast.chanceOfPrecipitation.toString()}% ${localizations.rain}',
+                    '${forecast.chanceOfRain.toString()}% ${localizations.rain}',
                     overflow: TextOverflow.fade,
                     softWrap: false,
                     style: GoogleFonts.poppins(

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -107,11 +108,8 @@ class _HomePageState extends State<HomePage> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                           itemBuilder: (context) => [
-                            PopupMenuItem(
-                              onTap: () {
-                                // TODO: Share
-                              },
-                              child: const Text(
+                            const PopupMenuItem(
+                              child: Text(
                                 'Share',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w300,
@@ -199,7 +197,6 @@ class _HomePageState extends State<HomePage> {
                         padding: const EdgeInsets.all(8),
                         child: Column(
                           children: [
-                            // TODO: Chance of rain param and normal design for it
                             Row(
                               children: [
                                 _CurrentWeatherParam(
@@ -208,6 +205,13 @@ class _HomePageState extends State<HomePage> {
                                   value:
                                       '${appState.windSpeedUnit.toNumberStringFromKMH(appState.getSelectedLocation.currentWeather.windSpeed)} ${appState.windSpeedUnit.toLocalizedString(localization)}',
                                   name: localization.wind,
+                                ),
+                                _CurrentWeatherParam(
+                                  icon:
+                                      const Icon(AppIcons.fluent_weather_rain_24_regular),
+                                  value:
+                                      '${appState.getSelectedLocation.currentWeather.chanceOfRain}%',
+                                  name: localization.chanceOfRain,
                                 ),
                               ],
                             ),
@@ -284,8 +288,8 @@ class _CurrentWeatherParam extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          const SizedBox(width: 24),
           IconTheme(
             data: Theme.of(context).iconTheme.copyWith(
                   size: 32,

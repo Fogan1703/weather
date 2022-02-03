@@ -87,7 +87,7 @@ class DailyForecast extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  '${forecast.chanceOfPrecipitation}% ${localizations.rain}',
+                                  '${forecast.chanceOfRain}% ${localizations.rain}',
                                   style: GoogleFonts.poppins(
                                     fontSize: 12,
                                   ),
