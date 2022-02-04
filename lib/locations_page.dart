@@ -116,39 +116,19 @@ class _LocationsPageState extends State<LocationsPage> {
                                   _searchIsNotEmpty = false;
                                   _suggestions = null;
                                   appState.addLocationByFullName(fullName);
-                                  appState.selectedLocationFullName = fullName;
+
                                   if (widget.hasToAddLocation) {
                                     Navigator.of(context).pushReplacement(
                                       MaterialPageRoute(
                                         builder: (context) {
-                                          return Consumer<AppStateModel>(
-                                            builder:
-                                                (context, appState, child) {
-                                              return AnimatedSwitcher(
-                                                duration: const Duration(
-                                                    milliseconds: 200),
-                                                child:
-                                                    appState.isLoadingLocations
-                                                        ? Container(
-                                                            color: Colors.white,
-                                                            child: const Center(
-                                                              child:
-                                                                  CircularProgressIndicator(),
-                                                            ),
-                                                          )
-                                                        : const HomePage(),
-                                              );
-                                            },
-                                          );
+                                          return const HomePage();
                                         },
                                       ),
                                     );
+                                  } else if (widget.isSearching) {
+                                    Navigator.of(context).pop();
                                   } else {
-                                    if (widget.isSearching) {
-                                      Navigator.of(context).pop();
-                                    } else {
-                                      _searchFieldKey.currentState!.clear();
-                                    }
+                                    _searchFieldKey.currentState!.clear();
                                   }
                                 });
                               },
@@ -402,24 +382,24 @@ class _LocationsListViewState extends State<_LocationsListView>
   @override
   void didUpdateWidget(covariant _LocationsListView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    bool differentLocations = false;
-    if (widget.locations.length != oldWidget.locations.length) {
-      differentLocations = true;
-    }
-    for (final newLocation in widget.locations) {
-      bool isDifferent = true;
-      for (final oldLocation in oldWidget.locations) {
-        if (newLocation.fullName == oldLocation.fullName) {
-          isDifferent = false;
+      bool differentLocations = false;
+      if (widget.locations.length != oldWidget.locations.length) {
+        differentLocations = true;
+      }
+      for (final newLocation in widget.locations) {
+        bool isDifferent = true;
+        for (final oldLocation in oldWidget.locations) {
+          if (newLocation.fullName == oldLocation.fullName) {
+            isDifferent = false;
+          }
+        }
+        if (isDifferent) {
+          differentLocations = true;
+          break;
         }
       }
-      if (isDifferent) {
-        differentLocations = true;
-        break;
-      }
-    }
 
-    _updateControllers(playAppearingAnimation: differentLocations);
+      _updateControllers(playAppearingAnimation: differentLocations);
   }
 
   void _updateControllers({required bool playAppearingAnimation}) {
@@ -477,7 +457,7 @@ class _LocationsListViewState extends State<_LocationsListView>
                   ),
                 )
               : ListView.builder(
-                  itemCount: widget.locations.length,
+                  itemCount: _itemsControllers.length,
                   padding: const EdgeInsets.only(top: 32),
                   itemBuilder: (context, index) {
                     return _SavedLocationTile(
@@ -581,6 +561,7 @@ class _SavedLocationTile extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: Column(
@@ -646,7 +627,7 @@ class _SavedLocationTile extends StatelessWidget {
                         );
                       },
                       child: isSelecting
-                          ? location.isCurrent
+                          ? canBeSelected == false || location.isCurrent
                               ? null
                               : Align(
                                   alignment: Alignment.topRight,

@@ -130,6 +130,16 @@ class S {
     );
   }
 
+  /// `Share`
+  String get share {
+    return Intl.message(
+      'Share',
+      name: 'share',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `UNIT`
   String get unit {
     return Intl.message(

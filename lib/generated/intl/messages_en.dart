@@ -51,6 +51,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "searchYourCity":
             MessageLookupByLibrary.simpleMessage("Search Your City"),
         "settings": MessageLookupByLibrary.simpleMessage("Settings"),
+        "share": MessageLookupByLibrary.simpleMessage("Share"),
         "temperatureUnit":
             MessageLookupByLibrary.simpleMessage("Temperature unit"),
         "unit": MessageLookupByLibrary.simpleMessage("UNIT"),

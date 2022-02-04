@@ -40,8 +40,7 @@ class AppStateModel extends ChangeNotifier {
           case LocationPermission.deniedForever:
             loadCurrentLocation = false;
             break;
-          case LocationPermission.whileInUse:
-          case LocationPermission.always:
+          default:
             loadCurrentLocation = true;
             break;
         }
@@ -49,8 +48,7 @@ class AppStateModel extends ChangeNotifier {
       case LocationPermission.deniedForever:
         loadCurrentLocation = false;
         break;
-      case LocationPermission.whileInUse:
-      case LocationPermission.always:
+      default:
         loadCurrentLocation = true;
         break;
     }
@@ -162,6 +160,8 @@ class AppStateModel extends ChangeNotifier {
           .toList(),
     );
     _isLoadingLocations = false;
+    _selectedLocationFullName = fullName;
+    prefs.setString('selectedLocation', _selectedLocationFullName);
     notifyListeners();
   }
 

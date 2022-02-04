@@ -52,6 +52,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "searchYourCity":
             MessageLookupByLibrary.simpleMessage("Найдите Ваш Город"),
         "settings": MessageLookupByLibrary.simpleMessage("Настройки"),
+        "share": MessageLookupByLibrary.simpleMessage("Поделиться"),
         "temperatureUnit":
             MessageLookupByLibrary.simpleMessage("Единица температуры"),
         "unit": MessageLookupByLibrary.simpleMessage("ЕДИНИЦА ИЗМЕРЕНИЯ"),
